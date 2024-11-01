@@ -236,16 +236,30 @@ async def anilist(_, msg, aniid=None, u_id=None):
         conname = (conn.get(alpha_2=animeResp['countryOfOrigin'])).name
         try:
             flagg = (conn.get(alpha_2=animeResp['countryOfOrigin'])).flag
-            country = f"{flagg} #{conname}"
+            country = f"{flagg}"
         except AttributeError:
-            country = f"#{conname}"
+            country = f"🇯🇵"
         episodes = animeResp.get('episodes', 'N/A')
         try:
             duration = f"{get_readable_time(animeResp['duration']*60)}"
         except Exception:
             duration = "N/A"
         avgscore = f"{animeResp['averageScore']}%" or ''
-        genres = ", ".join(f"{GENRES_EMOJI[x]} #{x.replace(' ', '_').replace('-', '_')}" for x in animeResp['genres'])
+        genre_list = [f"{GENRES_EMOJI[x]} {x.replace(' ', '_').replace('-', '_')}" for x in animeResp['genres']]
+wrapped_genres = []
+line = ""
+
+for genre in genre_list:
+    if len(line) + len(genre) + 2 > 40:  # Adjust line length limit as needed
+        wrapped_genres.append(f"┃{line.strip()}")  # Add the current line to the list
+        line = ""  # Reset the line
+    line += f"{genre}, "  # Add genre to the current line
+
+if line:  # Add any remaining genres to the list
+    wrapped_genres.append(f"┃{line.strip()}")
+
+genres = "\n".join(wrapped_genres)
+
         studios = ", ".join(f"""<a href="{x['siteUrl']}">{x['name']}</a>""" for x in animeResp['studios']['nodes'])
         source = animeResp['source'] or '-'
         hashtag = animeResp['hashtag'] or 'N/A'
